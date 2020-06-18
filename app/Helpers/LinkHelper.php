@@ -100,11 +100,18 @@ class LinkHelper {
 
         $pr_str = '';
         $in_use = true;
+        $repeat = 0;
+        $length = env('_PSEUDO_RANDOM_KEY_LENGTH');
 
         while ($in_use) {
             // Generate a new string until the ending is not in use
-            $pr_str = str_random(env('_PSEUDO_RANDOM_KEY_LENGTH'));
+            $pr_str = str_random($length);
             $in_use = LinkHelper::linkExists($pr_str);
+            $repeat ++;
+            if ($repeat > 10) {
+                $length ++;
+                $repeat = 0;
+            }
         }
 
         return $pr_str;
