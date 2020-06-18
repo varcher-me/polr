@@ -19,6 +19,9 @@ $app->get('/logout', ['as' => 'logout', 'uses' => 'UserController@performLogoutU
 $app->get('/login', ['as' => 'login', 'uses' => 'UserController@displayLoginPage']);
 $app->get('/about-polr', ['as' => 'about', 'uses' => 'StaticPageController@displayAbout']);
 
+$app->get('/token_bind_prompt', ['as' => 'token_bind_prompt', 'uses' => 'GoogleTokenController@showBindTokenForm']);
+$app->post('/token_bind', ['as' => 'token_bind', 'uses' => 'GoogleTokenController@BindToken']);
+
 $app->get('/lost_password', ['as' => 'lost_password', 'uses' => 'UserController@displayLostPasswordPage']);
 $app->get('/activate/{username}/{recovery_key}', ['as' => 'activate', 'uses' => 'UserController@performActivation']);
 $app->get('/reset_password/{username}/{recovery_key}', ['as' => 'reset_password', 'uses' => 'UserController@performPasswordReset']);

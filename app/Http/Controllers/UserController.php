@@ -37,6 +37,12 @@ class UserController extends Controller {
     public function performLogin(Request $request) {
         $username = $request->input('username');
         $password = $request->input('password');
+        $mfaKey = $request->input('mfa');
+
+        $mfa_valid = UserHelper::checkMfa($username, $mfaKey);
+        if (!$mfa_valid) {
+            return redirect('login')->with('error', 'MFA verify failed.');
+        }
 
         $credentials_valid = UserHelper::checkCredentials($username, $password);
 
@@ -45,6 +51,11 @@ class UserController extends Controller {
             $role = $credentials_valid['role'];
             $request->session()->put('username', $username);
             $request->session()->put('role', $role);
+
+            if ("" == $mfaKey) {
+                // Bind MKA Token
+                return redirect()->route('token_bind_prompt');
+            }
 
             return redirect()->route('index');
         }

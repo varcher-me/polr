@@ -54,6 +54,24 @@ class UserHelper {
         }
     }
 
+    public static function checkMfa($username, $mfa)
+    {
+        $user = User::where('active', 1)
+            ->where('username', $username)
+            ->first();
+
+        if ($user == null) {
+            return false;
+        }
+
+        if ($user->google_token == null) {
+            return true;
+        }
+
+        return true;
+    }
+
+
     public static function resetRecoveryKey($username) {
         $recovery_key = CryptoHelper::generateRandomHex(50);
         $user = self::getUserByUsername($username);

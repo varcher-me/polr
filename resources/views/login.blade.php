@@ -12,6 +12,7 @@
         <form action="login" method="POST">
             <input type="text" placeholder="username" name="username" class="form-control login-field" />
             <input type="password" placeholder="password" name="password" class="form-control login-field" />
+            <input type="text" placeholder="MFA(Keep blank if not bind)" name="mfa" class="form-control login-field" />
             <input type="hidden" name='_token' value='{{csrf_token()}}' />
             <input type="submit" value="Login" class="login-submit btn btn-success" />
 
