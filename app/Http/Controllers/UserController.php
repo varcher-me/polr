@@ -31,7 +31,7 @@ class UserController extends Controller {
     public function performLogoutUser(Request $request) {
         $request->session()->forget('username');
         $request->session()->forget('role');
-        return redirect()->route('index');
+        return redirect()->route('login');
     }
 
     public function performLogin(Request $request) {
@@ -40,8 +40,14 @@ class UserController extends Controller {
         $mfaKey = $request->input('mfa');
 
         $mfa_valid = UserHelper::checkMfa($username, $mfaKey);
-        if (!$mfa_valid) {
-            return redirect('login')->with('error', 'MFA verify failed.');
+        switch ($mfa_valid) {
+            case "UNBIND MFA":
+            case "MFA SUCCESS":
+                break;
+            case "MFA FAILED":
+            case "NO_SUCH_USER":
+            default:
+                return redirect('login')->with('error', 'Invalid password, MFA or inactivated account. Try again.');
         }
 
         $credentials_valid = UserHelper::checkCredentials($username, $password);
@@ -52,7 +58,7 @@ class UserController extends Controller {
             $request->session()->put('username', $username);
             $request->session()->put('role', $role);
 
-            if ("" == $mfaKey) {
+            if ("UNBIND MFA" == $mfa_valid) {
                 // Bind MKA Token
                 return redirect()->route('token_bind_prompt');
             }
@@ -60,7 +66,7 @@ class UserController extends Controller {
             return redirect()->route('index');
         }
         else {
-            return redirect('login')->with('error', 'Invalid password or inactivated account. Try again.');
+            return redirect('login')->with('error', 'Invalid password, MFA or inactivated account. Try again.');
         }
     }
 

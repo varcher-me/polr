@@ -11,7 +11,7 @@
 
         <form action='/token_bind' method='POST'>
             用户名: <input type='text' name='UserName' class='form-control form-field' value="{{$user}}" readonly />
-            SecretKey: <input type='text' name='SecretKey' class='form-control form-field' value="{{$key}}" readonly />
+            SecretKey: <input type='text' name='SecretToken' class='form-control form-field' value="{{$token}}" readonly />
             请使用验证器扫描：
             <img src="data:image/png;base64, {{$QRCode}}"/><p>
             输入一组验证码: <input type='text' name='InputKey' class='form-control form-field' placeholder="Verify Key"/>

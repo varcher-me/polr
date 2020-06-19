@@ -4,6 +4,10 @@ namespace App\Helpers;
 use App\Models\User;
 use App\Helpers\CryptoHelper;
 use Hash;
+use PragmaRX\Google2FA\Exceptions\IncompatibleWithGoogleAuthenticatorException;
+use PragmaRX\Google2FA\Exceptions\InvalidCharactersException;
+use PragmaRX\Google2FA\Exceptions\SecretKeyTooShortException;
+use PragmaRX\Google2FA\Google2FA;
 
 class UserHelper {
     public static $USER_ROLES = [
@@ -36,9 +40,7 @@ class UserHelper {
     }
 
     public static function checkCredentials($username, $password) {
-        $user = User::where('active', 1)
-            ->where('username', $username)
-            ->first();
+        $user = self::getUserByUsername($username);
 
         if ($user == null) {
             return false;
@@ -56,19 +58,45 @@ class UserHelper {
 
     public static function checkMfa($username, $mfa)
     {
-        $user = User::where('active', 1)
-            ->where('username', $username)
-            ->first();
+        $user = self::getUserByUsername($username);
 
+        //User Not Existed
         if ($user == null) {
-            return false;
+            return "NO_SUCH_USER";
         }
 
-        if ($user->google_token == null) {
-            return true;
+        //MFA Havn't Bind.
+        if ($user->MFA_Token == null) {
+            return "UNBIND MFA";
         }
 
-        return true;
+        $google2fa = new Google2FA();
+        $secretToken = $user->MFA_Token;
+        $inputKey = $mfa;
+        $valid = false;
+
+        try {
+            $valid = $google2fa->verifyKey($secretToken, $inputKey, 2);
+        } catch (IncompatibleWithGoogleAuthenticatorException $e) {
+            abort(500, 'Incompatible With Google Authenticator.');
+        } catch (InvalidCharactersException $e) {
+            abort(500, 'Invalid Characters With Google Authenticator.');
+        } catch (SecretKeyTooShortException $e) {
+            abort(500, 'Google Authenticator SecretKey TooShort.');
+        }
+
+        if ($valid) {
+            return "MFA SUCCESS";
+        } else {
+            return "MFA FAILED";
+        }
+    }
+
+    public static function setGoogleToken($username, $secretToken)
+    {
+        $user = self::getUserByUsername($username);
+        $user->MFA_Token = $secretToken;
+        $user->save();
     }
 
 

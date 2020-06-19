@@ -2,7 +2,7 @@
 
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
+use App\Helpers\UserHelper;
 use BaconQrCode\Writer;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
@@ -47,9 +47,9 @@ class GoogleTokenController extends Controller
     {
         $google2fa = new Google2FA();
         $username = $request->session()->get("username");
-        $secretKey = null;
+        $secretToken = null;
         try {
-            $secretKey = $google2fa->generateSecretKey(64);
+            $secretToken = $google2fa->generateSecretKey(64);
         } catch (IncompatibleWithGoogleAuthenticatorException $e) {
             abort(500, 'Incompatible With Google Authenticator.');
         } catch (InvalidCharactersException $e) {
@@ -60,7 +60,7 @@ class GoogleTokenController extends Controller
         $qrCodeUrl  = $google2fa->getQRCodeUrl(
             'GSJY.LTD',
             $username,
-            $secretKey
+            $secretToken
         );
 
         $writer = new Writer(
@@ -73,13 +73,34 @@ class GoogleTokenController extends Controller
 
         return view('mfa_token_bind', [
             'user' => $username,
-            'key' => $secretKey,
+            'token' => $secretToken,
             'QRCode' => $qrcode_image
         ]);
     }
 
     public function BindToken(Request $request)
     {
-        var_dump($request);
+        $google2fa = new Google2FA();
+        $userName = $request->session()->get("username");
+        $secretToken = $request->input("SecretToken");
+        $inputKey = $request->input("InputKey");
+        $valid = false;
+
+        try {
+            $valid = $google2fa->verifyKey($secretToken, $inputKey, 2);
+        } catch (IncompatibleWithGoogleAuthenticatorException $e) {
+            abort(500, 'Incompatible With Google Authenticator.');
+        } catch (InvalidCharactersException $e) {
+            abort(500, 'Invalid Characters With Google Authenticator.');
+        } catch (SecretKeyTooShortException $e) {
+            abort(500, 'Google Authenticator SecretKey TooShort.');
+        }
+
+        if (!$valid) {
+            return redirect(route('token_bind_prompt'))->with('error', 'Your MFA verify failed, please check.');
+        }
+
+        UserHelper::setGoogleToken($userName, $secretToken);
+        return redirect()->route('index');
     }
 }
