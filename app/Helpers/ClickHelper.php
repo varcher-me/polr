@@ -29,6 +29,7 @@ class ClickHelper {
         return parse_url($url, PHP_URL_HOST);
     }
 
+
     static public function recordClick(Link $link, Request $request) {
         /**
          * Given a Link model instance and Request object, process post click operations.
