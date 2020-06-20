@@ -2,12 +2,25 @@
 namespace App\Helpers;
 use App\Models\Click;
 use App\Models\Link;
+use GeoIp2\Exception\AddressNotFoundException;
 use Illuminate\Http\Request;
+use GeoIp2\Database\Reader;
+use MaxMind\Db\Reader\InvalidDatabaseException;
 
 class ClickHelper {
-    static private function getCountry($ip) {
-        $country_iso = geoip()->getLocation($ip)->iso_code;
-        return $country_iso;
+
+    /**
+     * @param $ip string
+     * @return \GeoIp2\Model\City|null
+     * @throws AddressNotFoundException
+     * @throws InvalidDatabaseException
+     */
+    static private function getGeo2($ip) {
+        $record = null;
+        $reader = new Reader(storage_path('app/GeoLite2-City.mmdb'), ['zh-CN']);
+        $record = $reader->city($ip);
+
+        return $record;
     }
 
     static private function getHost($url) {
@@ -29,10 +42,22 @@ class ClickHelper {
         $click = new Click;
         $click->link_id = $link->id;
         $click->ip = $ip;
-        $click->country = self::getCountry($ip);
         $click->referer = $referer;
         $click->referer_host = ClickHelper::getHost($referer);
         $click->user_agent = $request->server('HTTP_USER_AGENT');
+
+        try {
+            if ($geoRecord = self::getGeo2($ip)) {
+                $click->country  = $geoRecord->country->isoCode;
+                $click->city     = $geoRecord->city->names['zh-CN'];
+                $click->province = $geoRecord->mostSpecificSubdivision->names['zh-CN'];
+            }
+        } catch (InvalidDatabaseException | AddressNotFoundException | \Exception  $e) {
+            $click->country = "";
+            $click->city = "";
+            $click->province = "";
+        }
+
         $click->save();
 
         return true;
