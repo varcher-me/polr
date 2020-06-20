@@ -58,10 +58,10 @@ class StatsHelper {
 
     public function getCountryStats() {
         $stats = $this->getBaseRows()
-            ->select(DB::raw("country AS label, count(*) AS clicks"))
-            ->groupBy('country')
+            ->select(DB::raw("province AS label, count(*) AS clicks"))
+            ->groupBy('province')
             ->orderBy('clicks', 'desc')
-            ->whereNotNull('country')
+            ->whereNotNull('province')
             ->get();
 
         return $stats;

@@ -125,7 +125,7 @@ polr.controller('StatsCtrl', function($scope, $compile) {
         });
 
         $('#mapChart').vectorMap({
-            map: 'world_mill',
+            map: 'cn_mill',
             series: {
                 regions: [{
                     values: parsedCountryData,
