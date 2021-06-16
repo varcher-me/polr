@@ -52,6 +52,10 @@ class ClickHelper {
                 $click->country  = $geoRecord->country->isoCode;
                 $click->city     = $geoRecord->city->names['zh-CN'];
                 $click->province = $geoRecord->mostSpecificSubdivision->names['zh-CN'];
+                if($click->city == null)
+                    $click->city = "";
+                if($click->province == null)
+                    $click->province = "";
             }
         } catch (InvalidDatabaseException | AddressNotFoundException | \Exception  $e) {
             $click->country = "";
