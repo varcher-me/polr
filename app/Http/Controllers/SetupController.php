@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Redirect;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 
 use App\Helpers\CryptoHelper;
 use App\Models\User;
@@ -230,6 +231,12 @@ class SetupController extends Controller {
 
         if ($transaction_authorised != true) {
             abort(403, 'Transaction unauthorised.');
+        }
+
+        $usersTableExists = Schema::hasTable('users');
+        if ($usersTableExists) {
+            // If the users table exists, then the setup process may have already been completed before.
+            abort(403, 'Setup has been completed already.');
         }
 
         $database_created = self::createDatabase();
