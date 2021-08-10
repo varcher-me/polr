@@ -227,7 +227,7 @@ class SetupController extends Controller {
         // unset cookie
         setcookie('setup_arguments', '', time()-3600);
 
-        $transaction_authorised = env('TMP_SETUP_AUTH_KEY') == $setup_finish_args->setup_auth_key;
+        $transaction_authorised = env('TMP_SETUP_AUTH_KEY') === $setup_finish_args->setup_auth_key;
 
         if ($transaction_authorised != true) {
             abort(403, 'Transaction unauthorised.');
